@@ -110,39 +110,6 @@ Visit: [https://bcortes1996.github.io/hardpoint-simulator](https://bcortes1996.g
 - Team data and player stats
 - Game mechanics and rules
 
-### 🔒 Hiding Configuration IDs
-
-The app supports multiple methods to hide or obfuscate configuration values:
-
-#### **Option 1: Environment Variables (Recommended)**
-```bash
-# Set environment variables before building
-export APPWRITE_ENDPOINT="https://cloud.appwrite.io/v1"
-export APPWRITE_PROJECT_ID="your_project_id"
-
-# Run build script
-node build.js
-```
-
-#### **Option 2: Build-time Configuration**
-```bash
-# Use the build script with custom values
-APPWRITE_PROJECT_ID="your_project_id" node build.js
-```
-
-#### **Option 3: Runtime Configuration**
-```javascript
-// Set configuration at runtime (in browser console)
-localStorage.setItem('config_APPWRITE_PROJECT_ID', 'your_project_id');
-// Refresh the page
-```
-
-#### **Option 4: Obfuscation**
-The build script can replace IDs with placeholders:
-```bash
-node build.js --obfuscate
-```
-
 ### Recommended Additional Security
 1. **Appwrite Console Settings**:
    - Set database permissions to "Users" only
@@ -153,7 +120,6 @@ node build.js --obfuscate
    - Set up monitoring for suspicious activity
    - Implement IP-based rate limiting
    - Add CAPTCHA for high-traffic scenarios
-   - Use environment variables for configuration
 
 ## 🎯 How to Play
 
