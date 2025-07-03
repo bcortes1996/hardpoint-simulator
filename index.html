@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call of Duty: Hardpoint Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.0"></script>
+</head>
+<body class="text-white p-4 lg:p-8">
+    
+    <div id="login-screen" class="min-h-screen flex flex-col items-center justify-center text-center">
+    <div class="bg-gray-800 rounded-lg shadow-2xl p-8 w-full max-w-sm border border-gray-700">
+        <h1 class="text-3xl font-extrabold tracking-tight mb-2">Hardpoint Simulator</h1>
+        <h2 id="auth-title" class="text-2xl font-bold mb-6">Login</h2>
+        <form id="auth-form" class="space-y-4">
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-300 text-left">Email</label>
+                <input type="email" id="email" name="email" required class="mt-1 block w-full bg-gray-900 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-300 text-left">Password</label>
+                <input type="password" id="password" name="password" required class="mt-1 block w-full bg-gray-900 border border-gray-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div id="auth-error-message" class="text-red-400 text-sm hidden text-left"></div>
+            <div>
+                <button type="submit" id="auth-submit-btn" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Login
+                </button>
+            </div>
+        </form>
+        <div class="mt-4">
+            <p id="auth-toggle-text" class="text-sm text-gray-400">
+                Don't have an account? <button id="auth-toggle-btn" class="font-semibold text-indigo-400 hover:text-indigo-300">Sign Up</button>
+            </p>
+        </div>
+    </div>
+</div>
+
+    <div id="killfeed-container" class="fixed top-5 right-5 z-50 w-auto max-w-sm space-y-2 pointer-events-none"></div>
+
+    <div id="main-menu-screen" class="hidden max-w-4xl mx-auto text-center">
+        <div id="user-status-container" class="absolute top-5 right-5 flex gap-2">
+    
+    <div id="user-profile-container" class="hidden items-center gap-3">
+        <span id="user-email-display" class="text-gray-300"></span>
+        <button id="logout-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">Logout</button>
+    </div>
+        </div>
+        <h1 class="text-5xl lg:text-6xl font-extrabold tracking-tight">Hardpoint Simulator</h1>
+        <p class="text-gray-400 mt-2 text-lg">V2.0 Championship Edition</p>
+        <div class="mt-16 flex flex-col md:flex-row gap-4 justify-center">
+            <button id="menu-single-match-btn" class="main-menu-btn" disabled>
+                <span class="text-2xl font-bold">Single Match</span>
+                <span class="text-sm text-gray-300">Play a one-off exhibition series.</span>
+            </button>
+            <button id="menu-tournament-btn" class="main-menu-btn" disabled>
+                <span class="text-2xl font-bold">Tournament</span>
+                <span class="text-sm text-gray-300">Compete in an 8-team Major.</span>
+            </button>
+            <button id="menu-league-btn" class="main-menu-btn">
+                <span class="text-2xl font-bold">League Season</span>
+                <span class="text-sm text-gray-300">Coach a team through a full season.</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="team-selection-screen" class="hidden max-w-4xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl lg:text-5xl font-extrabold tracking-tight">Setup Single Match</h1>
+            <p class="text-gray-400 mt-2">Choose teams, playstyles, and the match format.</p>
+        </header>
+        <div class="text-center mb-8">
+            <h3 class="text-lg font-semibold mb-3 text-gray-300">Match Format</h3>
+            <div id="match-format-container" class="inline-flex rounded-md shadow-sm" role="group">
+                <button data-format="1" class="match-format-btn rounded-l-lg">1 Game</button>
+                <button data-format="3" class="match-format-btn">Best of 3</button>
+                <button data-format="5" class="match-format-btn rounded-r-lg">Best of 5</button>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start mb-8">
+            <div class="flex flex-col gap-2"><div id="selection-slot-a" class="selection-slot p-4 rounded-lg flex flex-col items-center justify-center h-32"></div><div id="playstyle-a-container" class="grid grid-cols-2 gap-2"><button data-team="a" data-style="balanced" class="playstyle-btn">Balanced</button><button data-team="a" data-style="pace" class="playstyle-btn">Hyper-Pressure</button><button data-team="a" data-style="efficiency" class="playstyle-btn">Methodical</button><button data-team="a" data-style="objective" class="playstyle-btn">Objective</button></div></div>
+            <div class="text-center text-4xl font-bold text-gray-600 pt-12">VS</div>
+            <div class="flex flex-col gap-2"><div id="selection-slot-b" class="selection-slot p-4 rounded-lg flex flex-col items-center justify-center h-32"></div><div id="playstyle-b-container" class="grid grid-cols-2 gap-2"><button data-team="b" data-style="balanced" class="playstyle-btn">Balanced</button><button data-team="b" data-style="pace" class="playstyle-btn">Hyper-Pressure</button><button data-team="b" data-style="efficiency" class="playstyle-btn">Methodical</button><button data-team="b" data-style="objective" class="playstyle-btn">Objective</button></div></div>
+        </div>
+        <div id="team-list-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8"></div>
+        <div class="flex space-x-4">
+             <button id="start-match-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 disabled:bg-gray-600 disabled:cursor-not-allowed">Start Match</button>
+            <button id="reset-selection-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300">Reset</button>
+        </div>
+        <div class="text-center mt-6">
+            <button id="single-match-back-btn" class="text-sm text-gray-400 hover:text-white">← Back to Main Menu</button>
+        </div>
+    </div>
+    
+    <div id="tournament-setup-screen" class="hidden max-w-6xl mx-auto">
+         <header class="text-center mb-8">
+            <h1 class="text-4xl lg:text-5xl font-extrabold tracking-tight">Tournament Setup</h1>
+            <p class="text-gray-400 mt-2">Select <span id="tournament-team-count" class="font-bold text-white">0</span> of 8 teams to compete in The Major.</p>
+        </header>
+        <div id="tournament-team-selection-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8"></div>
+        <div class="flex justify-center gap-4 mt-8">
+            <button id="tournament-start-btn" class="main-menu-btn w-1/2" disabled>Generate Bracket</button>
+            <button id="tournament-back-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition">Back to Menu</button>
+        </div>
+    </div>
+
+    <div id="tournament-bracket-screen" class="hidden max-w-7xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 id="bracket-header-title" class="text-4xl lg:text-5xl font-extrabold tracking-tight">Major Championship</h1>
+            <p id="bracket-round-title" class="text-gray-400 mt-2">Tournament Bracket</p>
+        </header>
+        <div id="bracket-container" class="flex justify-center items-stretch gap-4 md:gap-8"></div>
+        <div class="text-center mt-8">
+             <button id="bracket-back-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition">Back to Menu</button>
+        </div>
+    </div>
+
+    <div id="franchise-setup-screen" class="hidden max-w-6xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl lg:text-5xl font-extrabold tracking-tight">Choose Your Franchise</h1>
+            <p class="text-gray-400 mt-2">Select the one team you will lead through the entire league season.</p>
+            
+        </header>
+        <div id="your-franchise-display" class="mb-8 p-6 bg-gray-800 rounded-lg text-center border border-gray-700 min-h-[108px] flex items-center justify-center">
+            <p class="text-gray-500">No team selected</p>
+        </div>
+        <h2 class="text-2xl font-bold mb-4 text-center">Available Teams</h2>
+        <div id="franchise-selection-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8"></div>
+        <div class="flex justify-center gap-4 mt-8">
+            <button id="start-league-btn" class="main-menu-btn w-1/2" disabled>Start League Season</button>
+            <button id="franchise-back-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition">Back to Menu</button>
+        </div>
+    </div>
+
+    <div id="league-hub-screen" class="hidden max-w-7xl mx-auto">
+    <header class="text-center mb-8">
+        <div class="flex justify-center items-center gap-6 mb-2">
+            <h1 class="text-4xl lg:text-5xl font-extrabold tracking-tight">League Season</h1>
+            <div class="flex items-center gap-2 bg-amber-500/10 text-amber-400 font-bold border border-amber-500/20 px-4 py-2 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm-1.12-3.66a.75.75 0 0 1 .14-1.48l1.39-1.16a2.25 2.25 0 0 0 0-3.4Z" clip-rule="evenodd" />
+                </svg>
+                <span id="league-coin-display">0</span>
+            </div>
+        </div>
+        <p id="league-week-title" class="text-gray-400 mt-2">Week 1 of 7</p>
+    </header>
+
+    <div class="mb-6 border-b border-gray-700">
+        <nav class="flex -mb-px" aria-label="Tabs">
+            <button data-tab="hub" class="league-tab active-tab group w-1/4 py-4 px-1 text-center border-b-2 font-medium text-sm">Hub</button>
+            <button data-tab="roster" class="league-tab inactive-tab group w-1/4 py-4 px-1 text-center border-b-2 font-medium text-sm">Roster</button>
+            <button data-tab="training" class="league-tab inactive-tab group w-1/4 py-4 px-1 text-center border-b-2 font-medium text-sm">Training</button>
+            <button data-tab="market" class="league-tab inactive-tab group w-1/4 py-4 px-1 text-center border-b-2 font-medium text-sm">Market</button>
+        </nav>
+    </div>
+
+    <div>
+        <div id="tab-hub" class="league-tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2">
+                    <h2 class="text-2xl font-bold mb-4">League Standings</h2>
+                    <div class="league-table-container">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-800">
+                                <tr><th class="p-3">#</th><th class="p-3">Team</th><th class="p-3 text-center">W</th><th class="p-3 text-center">L</th><th class="p-3">Record</th></tr>
+                            </thead>
+                            <tbody id="league-standings-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold mb-4">Weekly Schedule</h2>
+                    <div id="weekly-matchups-container" class="space-y-4"></div>
+                    <div class="mt-6 space-y-2">
+                        <button id="league-play-match-btn" class="w-full main-menu-btn !py-3 !text-center !items-center !justify-center">Play Your Match</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-roster" class="league-tab-content hidden">
+    <div class="text-center mb-8">
+        <h2 class="text-3xl font-bold">Team Roster</h2>
+        <p class="text-gray-400 mt-1">Review your active lineup and substitute players.</p>
+    </div>
+
+    <div>
+        <h3 class="text-xl font-semibold mb-4 text-indigo-400">Active Roster (4)</h3>
+        <div id="active-roster-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            </div>
+    </div>
+
+    <div class="mt-8">
+        <h3 class="text-xl font-semibold mb-4 text-gray-500">Substitutes (2)</h3>
+        <div id="substitute-roster-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="roster-slot-empty h-36 flex items-center justify-center rounded-lg border-2 border-dashed border-gray-700">
+                <p class="text-gray-600">Empty Slot</p>
+            </div>
+            <div class="roster-slot-empty h-36 flex items-center justify-center rounded-lg border-2 border-dashed border-gray-700">
+                <p class="text-gray-600">Empty Slot</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+        <div id="tab-training" class="league-tab-content hidden">
+    <div id="training-available-container">
+        <div class="text-center mb-6">
+            <h2 class="text-3xl font-bold">Training Hub</h2>
+            <p class="text-gray-400 mt-1">Choose one drill to focus on for the week to improve your players.</p>
+        </div>
+        <div class="space-y-3 max-w-2xl mx-auto">
+            <button data-drill="efficiency" class="training-drill-btn w-full p-4 text-left bg-gray-700 hover:bg-indigo-600 rounded-lg transition-colors">
+                <span class="font-bold text-lg">Slaying & VOD Review</span>
+                <span class="block text-sm text-gray-300">Focuses on improving player <span class="font-semibold text-green-400">Efficiency</span>.</span>
+            </button>
+            <button data-drill="pace" class="training-drill-btn w-full p-4 text-left bg-gray-700 hover:bg-indigo-600 rounded-lg transition-colors">
+                <span class="font-bold text-lg">Break-Off & Rotational Drills</span>
+                <span class="block text-sm text-gray-300">Focuses on improving player <span class="font-semibold text-sky-400">Pace</span>.</span>
+            </button>
+            <button data-drill="objective" class="training-drill-btn w-full p-4 text-left bg-gray-700 hover:bg-indigo-600 rounded-lg transition-colors">
+                <span class="font-bold text-lg">Hill-Breaking Scrims</span>
+                <span class="block text-sm text-gray-300">Focuses on improving player <span class="font-semibold text-amber-400">Objective</span> stats.</span>
+            </button>
+        </div>
+    </div>
+            
+        <div id="training-progress-container" class="hidden text-center py-16">
+        <h2 class="text-3xl font-bold">Training in Progress...</h2>
+        <p class="text-gray-400 mt-2">Your team is running drills. Please wait.</p>
+        <div class="w-full max-w-md mx-auto bg-gray-700 rounded-full h-2.5 mt-6">
+            <div id="training-progress-bar" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
+        </div>
+    </div>    
+
+    <div id="training-completed-container" class="hidden text-center py-16">
+        <h2 class="text-3xl font-bold text-green-400">Training Completed!</h2>
+        <p class="text-gray-400 mt-2">Your team has finished their drills for the week. Check back next week for another session.</p>
+    </div>
+</div>
+
+        <div id="tab-market" class="league-tab-content hidden">
+    <div class="text-center mb-8">
+        <h2 class="text-3xl font-bold">Player Market</h2>
+        <p class="text-gray-400 mt-1">Review the available free agents. A new set of players will be available each week.</p>
+    </div>
+
+    <div id="market-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        </div>
+</div>
+    </div>
+</div>
+    
+    
+    <div id="simulation-screen" class="hidden max-w-7xl mx-auto">
+        <header class="text-center mb-2">
+            <div id="series-score-display" class="text-center mb-4 hidden">
+                <p id="series-format-text" class="text-lg text-gray-400"></p>
+                <div class="flex justify-center items-center gap-4">
+                    <span id="series-teamA-name" class="text-2xl font-bold"></span>
+                    <span id="series-score-text" class="text-4xl font-extrabold text-amber-400"></span>
+                    <span id="series-teamB-name" class="text-2xl font-bold"></span>
+                </div>
+            </div>
+            <p id="matchup-title" class="text-gray-400 mt-2"></p>
+            <button id="back-to-selection-btn" class="mt-4 text-sm bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg"></button>
+        </header>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+            <div class="team-card rounded-lg p-6" id="teamA"><div class="flex items-center mb-4"><img id="teamA-logo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Team A Logo" class="team-logo rounded-full mr-4"><div><h2 id="teamA-name" class="text-2xl font-bold"></h2><p class="text-gray-400">Team Overall: <span id="teamA-overall"></span></p></div></div><div class="space-y-4" id="teamA-players"></div></div>
+            <div class="game-status-card rounded-lg p-6 flex flex-col justify-between"><div><h2 class="text-2xl font-bold text-center mb-4">Game Status</h2><div class="flex justify-around items-center mb-4"><div class="text-center"><div class="text-4xl font-bold" id="teamA-score"></div><div id="teamA-score-label" class="text-sm text-gray-400"></div></div><div class="text-2xl font-mono">:</div><div class="text-center"><div class="text-4xl font-bold" id="teamB-score"></div><div id="teamB-score-label" class="text-sm text-gray-400"></div></div></div><div class="text-center my-4"><div class="text-lg font-semibold">Game Clock</div><div class="text-5xl font-mono font-bold tracking-wider" id="game-timer"></div></div><div class="text-center my-4"><div class="text-lg font-semibold">Hill State</div><div class="text-2xl font-bold" id="hill-state"></div></div><div class="flex justify-around items-center text-center mt-4"><div><div class="text-sm font-semibold">Hill Timer</div><div class="text-3xl font-mono font-bold" id="hill-timer"></div></div><div><div class="text-sm font-semibold">Current Hill</div><div class="grid grid-cols-4 gap-2 mt-2"><div id="hill-p1" class="p-2 rounded-md text-center border border-gray-600">P1</div><div id="hill-p2" class="p-2 rounded-md text-center border border-gray-600">P2</div><div id="hill-p3" class="p-2 rounded-md text-center border border-gray-600">P3</div><div id="hill-p4" class="p-2 rounded-md text-center border border-gray-600">P4</div></div></div></div></div><button id="start-sim-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 mt-6"></button><button id="speed-toggle-btn" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 mt-2 text-sm"></button></div>
+            <div class="team-card rounded-lg p-6" id="teamB"><div class="flex items-center mb-4"><img id="teamB-logo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Team B Logo" class="team-logo rounded-full mr-4"><div><h2 id="teamB-name" class="text-2xl font-bold"></h2><p class="text-gray-400">Team Overall: <span id="teamB-overall"></span></p></div></div><div class="space-y-4" id="teamB-players"></div></div>
+        </div>
+        <div class="event-log-card rounded-lg p-6 mt-6"><h2 class="text-2xl font-bold mb-4">Event Log</h2><div id="event-log-container" class="event-log-container bg-gray-900 rounded-lg p-4 space-y-2"></div></div>
+    </div>
+    
+    <div id="post-match-screen" class="hidden fixed inset-0 bg-gray-900 bg-opacity-95 z-50 flex flex-col items-center justify-center p-8">
+        <div class="text-center"><h1 class="text-5xl font-extrabold text-amber-400">Match MVP</h1><p class="text-gray-400">Most Valuable Player of the Series</p></div>
+        <div id="mvp-card" class="bg-gray-800 border-2 border-amber-400 rounded-lg p-6 mt-8 text-center shadow-2xl w-full max-w-sm"><img id="mvp-logo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="MVP Team Logo" class="w-24 h-24 mx-auto rounded-full border-4 border-gray-700 -mt-16"><h2 id="mvp-name" class="text-4xl font-bold mt-4"></h2><h3 id="mvp-team" class="text-xl text-gray-400"></h3><div class="flex justify-around mt-6 text-center"><div><p class="text-xs text-gray-400">KILLS</p><p id="mvp-kills" class="text-2xl font-bold text-green-400"></p></div><div><p class="text-xs text-gray-400">DEATHS</p><p id="mvp-deaths" class="text-2xl font-bold text-red-400"></p></div><div><p class="text-xs text-gray-400">HILL TIME</p><p id="mvp-hilltime" class="text-2xl font-bold text-sky-400"></p></div></div></div>
+        <div class="mt-8 w-full max-w-4xl"><div id="final-scoreboard-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div></div>
+        <button id="back-to-menu-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 mt-8"></button>
+    </div>
+    
+
+<div id="training-results-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 z-50 flex items-center justify-center">
+    <div class="bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-md border border-gray-700">
+        <h2 class="text-2xl font-bold mb-4 text-center">Training Complete!</h2>
+        <div id="training-results-text" class="space-y-2 text-center bg-gray-900 p-4 rounded-md">
+            </div>
+        <div class="text-center mt-6">
+            <button id="training-results-close-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg">OK</button>
+        </div>
+    </div>
+</div>
+
+    <div id="roster-swap-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 z-50 flex items-center justify-center">
+    <div class="bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-md border border-gray-700">
+        <h2 id="roster-swap-title" class="text-2xl font-bold mb-4 text-center">Swap Player</h2>
+        <p class="text-center text-gray-400 mb-6">Select a player below to swap with <strong id="player-to-swap-name" class="text-white"></strong>.</p>
+        
+        <div id="roster-swap-list" class="space-y-2 max-h-60 overflow-y-auto"></div>
+
+        <div class="text-center mt-6">
+            <button id="roster-swap-cancel-btn" class="text-sm text-gray-500 hover:text-white">Cancel</button>
+        </div>
+    </div>
+</div>
+    
+    <script src="league.js"></script>
+    
+    
+</body>
+</html>
