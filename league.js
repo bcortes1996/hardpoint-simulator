@@ -572,14 +572,22 @@ function init() {
     checkUserStatus();
     
     // 2. Set up the login/signup form listeners
-    ui.authForm.addEventListener('submit', handleAuthSubmit);
-    document.getElementById('auth-toggle-btn').addEventListener('click', () => setAuthMode(!isLoginMode));
+    if (ui.authForm) {
+        ui.authForm.addEventListener('submit', handleAuthSubmit);
+    }
+    
+    const authToggleBtn = document.getElementById('auth-toggle-btn');
+    if (authToggleBtn) {
+        authToggleBtn.addEventListener('click', () => setAuthMode(!isLoginMode));
+    }
 
     // 3. Add listeners for buttons that take you BACK to the main menu
-    ui.franchiseBackBtn.addEventListener('click', () => showScreen('main-menu-screen'));
-    ui.leagueBackBtn.addEventListener('click', resetAndGoToMenu);
-    
-    
+    if (ui.franchiseBackBtn) {
+        ui.franchiseBackBtn.addEventListener('click', () => showScreen('main-menu-screen'));
+    }
+    if (ui.leagueBackBtn) {
+        ui.leagueBackBtn.addEventListener('click', resetAndGoToMenu);
+    }
 }
 
 function initializeMainMenuListeners() {
