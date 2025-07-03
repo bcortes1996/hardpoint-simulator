@@ -572,9 +572,7 @@ function init() {
     checkUserStatus();
     
     // 2. Set up the login/signup form listeners
-    if (ui.authForm) {
-        ui.authForm.addEventListener('submit', handleAuthSubmit);
-    }
+    if (ui.authForm) ui.authForm.addEventListener('submit', handleAuthSubmit);
     
     const authToggleBtn = document.getElementById('auth-toggle-btn');
     if (authToggleBtn) {
@@ -1482,8 +1480,8 @@ function initializeMainMenuListeners() {
                 DATABASE_ID,
                 LEAGUE_MEMBERS_COLLECTION_ID,
                 [
-                    databases.queries.equal('leagueId', leagueId),
-                    databases.queries.equal('userId', activeUser.$id)
+                    Query.equal('leagueId', leagueId),
+                    Query.equal('userId', activeUser.$id)
                 ]
             );
             
@@ -1514,12 +1512,16 @@ function initializeMainMenuListeners() {
     // Load available teams (teams not yet selected)
     async function loadAvailableTeams() {
         try {
+            console.log('Loading available teams for league:', currentLeague.$id);
+            
             // Get all current members
             const members = await databases.listDocuments(
                 DATABASE_ID,
                 LEAGUE_MEMBERS_COLLECTION_ID,
-                [databases.queries.equal('leagueId', currentLeague.$id)]
+                [Query.equal('leagueId', currentLeague.$id)]
             );
+            
+            console.log('Found members:', members.documents);
             
             // Get all team IDs that are already taken
             const takenTeams = members.documents.map(member => member.teamId);
@@ -1529,10 +1531,17 @@ function initializeMainMenuListeners() {
                 !takenTeams.includes(teamId)
             );
             
+            console.log('Available teams:', availableTeams);
+            
             renderAvailableTeams();
+            showScreen('multiplayer-team-selection-screen');
             
         } catch (error) {
             console.error('Error loading available teams:', error);
+            // Fallback: show all teams as available
+            availableTeams = Object.keys(TEAM_DATABASE);
+            renderAvailableTeams();
+            showScreen('multiplayer-team-selection-screen');
         }
     }
 
@@ -1605,7 +1614,7 @@ function initializeMainMenuListeners() {
             const members = await databases.listDocuments(
                 DATABASE_ID,
                 LEAGUE_MEMBERS_COLLECTION_ID,
-                [databases.queries.equal('leagueId', currentLeague.$id)]
+                [Query.equal('leagueId', currentLeague.$id)]
             );
             
             leagueMembers = members.documents;
@@ -1652,7 +1661,7 @@ function initializeMainMenuListeners() {
             const memberships = await databases.listDocuments(
                 DATABASE_ID,
                 LEAGUE_MEMBERS_COLLECTION_ID,
-                [databases.queries.equal('userId', activeUser.$id)]
+                [Query.equal('userId', activeUser.$id)]
             );
             
             if (memberships.documents.length > 0) {
