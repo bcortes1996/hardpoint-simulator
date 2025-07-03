@@ -644,7 +644,47 @@ function initializeMainMenuListeners() {
         ui.postMatchScreen.classList.add('hidden');
     });
     
-    
+    // --- Multiplayer League Listeners ---
+    ui.menuLeagueBtn.addEventListener('click', async () => {
+        // Check if user is already in a multiplayer league
+        const inLeague = await checkMultiplayerLeague();
+        if (inLeague) {
+            // User is already in a league, go directly to league hub
+            return;
+        }
+        
+        // Show multiplayer options
+        showScreen('multiplayer-league-screen');
+    });
+
+    ui.createLeagueForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const leagueName = ui.leagueNameInput.value;
+        const maxTeams = ui.maxTeamsSelect.value;
+        
+        try {
+            const league = await createLeague(leagueName, maxTeams);
+            currentLeague = league;
+            await loadAvailableTeams();
+            showScreen('team-selection-screen');
+        } catch (error) {
+            alert('Error creating league: ' + error.message);
+        }
+    });
+
+    ui.joinLeagueForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const leagueId = ui.leagueIdInput.value;
+        await joinLeague(leagueId);
+    });
+
+    ui.multiplayerBackBtn.addEventListener('click', () => {
+        showScreen('main-menu-screen');
+    });
+
+    ui.teamSelectionBackBtn.addEventListener('click', () => {
+        showScreen('multiplayer-league-screen');
+    });
 }
     function showScreen(screenId) {
         document.querySelectorAll('.max-w-4xl, .max-w-6xl, .max-w-7xl').forEach(el => el.classList.add('hidden'));
@@ -1630,46 +1670,4 @@ function initializeMainMenuListeners() {
             return false;
         }
     }
-
-    // Multiplayer League Listeners
-    ui.menuLeagueBtn.addEventListener('click', async () => {
-        // Check if user is already in a multiplayer league
-        const inLeague = await checkMultiplayerLeague();
-        if (inLeague) {
-            // User is already in a league, go directly to league hub
-            return;
-        }
-        
-        // Show multiplayer options
-        showScreen('multiplayer-league-screen');
-    });
-
-    ui.createLeagueForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const leagueName = ui.leagueNameInput.value;
-        const maxTeams = ui.maxTeamsSelect.value;
-        
-        try {
-            const league = await createLeague(leagueName, maxTeams);
-            currentLeague = league;
-            await loadAvailableTeams();
-            showScreen('team-selection-screen');
-        } catch (error) {
-            alert('Error creating league: ' + error.message);
-        }
-    });
-
-    ui.joinLeagueForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const leagueId = ui.leagueIdInput.value;
-        await joinLeague(leagueId);
-    });
-
-    ui.multiplayerBackBtn.addEventListener('click', () => {
-        showScreen('main-menu-screen');
-    });
-
-    ui.teamSelectionBackBtn.addEventListener('click', () => {
-        showScreen('multiplayer-league-screen');
-    });
 });
