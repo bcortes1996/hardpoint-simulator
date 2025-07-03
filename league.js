@@ -135,7 +135,7 @@ let leagueMembers = [];
         
         // Multiplayer League UI
         multiplayerLeagueScreen: document.getElementById('multiplayer-league-screen'),
-        teamSelectionScreen: document.getElementById('team-selection-screen'),
+        teamSelectionScreen: document.getElementById('multiplayer-team-selection-screen'),
         createLeagueForm: document.getElementById('create-league-form'),
         joinLeagueForm: document.getElementById('join-league-form'),
         leagueNameInput: document.getElementById('league-name'),
@@ -674,7 +674,7 @@ function initializeMainMenuListeners() {
             const league = await createLeague(leagueName, maxTeams);
             currentLeague = league;
             await loadAvailableTeams();
-            showScreen('team-selection-screen');
+            showScreen('multiplayer-team-selection-screen');
         } catch (error) {
             alert('Error creating league: ' + error.message);
         }
@@ -1503,7 +1503,7 @@ function initializeMainMenuListeners() {
             
             currentLeague = league;
             await loadAvailableTeams();
-            showScreen('team-selection-screen');
+            showScreen('multiplayer-team-selection-screen');
             
         } catch (error) {
             console.error('Error joining league:', error);
