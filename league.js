@@ -2,11 +2,15 @@ document.addEventListener('DOMContentLoaded', () => {
 // TOP of league.js
 const { Client, Account, ID, Databases } = Appwrite;
 
+// Initialize configuration manager
+const configManager = new ConfigManager();
+const appwriteConfig = configManager.getAppwriteConfig();
+
 const client = new Client();
 
 client
-    .setEndpoint('https://cloud.appwrite.io/v1') // Your API Endpoint
-    .setProject('68639c810030f7f67bab'); // Your project ID from Appwrite console
+    .setEndpoint(appwriteConfig.endpoint) // Loaded from configuration
+    .setProject(appwriteConfig.projectId); // Loaded from configuration
 
 const account = new Account(client);
 const databases = new Databases(client);
