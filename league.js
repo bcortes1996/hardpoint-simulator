@@ -29,6 +29,15 @@ const databases = new Databases(client);
     const matchFormat = 1; // Best of 5 for all league matches
     let currentMode = 'league';
     let league = {};
+    //=========== MULTIPLAYER LEAGUE VARIABLES ===========
+const DATABASE_ID = '686510ee0020a76d0d98'; // Your actual database ID
+const LEAGUES_COLLECTION_ID = '6867058300318420674c';
+const LEAGUE_MEMBERS_COLLECTION_ID = '686706550034758889a2';
+
+let currentLeague = null;
+let userLeagueMembership = null;
+let availableTeams = [];
+let leagueMembers = []; 
 
     const ui = {
         // Screens
@@ -124,7 +133,18 @@ const databases = new Databases(client);
         authToggleBtn: document.getElementById('auth-toggle-btn'),
         loginScreen: document.getElementById('login-screen'),
         
-        
+        // Multiplayer League UI
+        multiplayerLeagueScreen: document.getElementById('multiplayer-league-screen'),
+        teamSelectionScreen: document.getElementById('team-selection-screen'),
+        createLeagueForm: document.getElementById('create-league-form'),
+        joinLeagueForm: document.getElementById('join-league-form'),
+        leagueNameInput: document.getElementById('league-name'),
+        maxTeamsSelect: document.getElementById('max-teams'),
+        leagueIdInput: document.getElementById('league-id'),
+        availableTeamsGrid: document.getElementById('available-teams-grid'),
+        leagueNameDisplay: document.getElementById('league-name-display'),
+        multiplayerBackBtn: document.getElementById('multiplayer-back-btn'),
+        teamSelectionBackBtn: document.getElementById('team-selection-back-btn'),
     };
     
     function renderTrainingTab() {
@@ -1368,4 +1388,288 @@ function initializeMainMenuListeners() {
     
     //=========== SCRIPT EXECUTION ===========
     init();
+
+    //=========== MULTIPLAYER LEAGUE FUNCTIONS ===========
+
+    // Create a new private league
+    async function createLeague(leagueName, maxTeams) {
+        try {
+            const leagueId = ID.unique();
+            const league = await databases.createDocument(
+                DATABASE_ID,
+                LEAGUES_COLLECTION_ID,
+                leagueId,
+                {
+                    name: leagueName,
+                    maxTeams: parseInt(maxTeams),
+                    currentTeams: 0,
+                    status: 'forming', // forming, active, completed
+                    createdBy: activeUser.$id,
+                    createdAt: new Date().toISOString(),
+                    teams: [],
+                    members: []
+                }
+            );
+            
+            console.log('League created:', league);
+            return league;
+        } catch (error) {
+            console.error('Error creating league:', error);
+            throw error;
+        }
+    }
+
+    // Join an existing league
+    async function joinLeague(leagueId) {
+        try {
+            // Get the league
+            const league = await databases.getDocument(
+                DATABASE_ID,
+                LEAGUES_COLLECTION_ID,
+                leagueId
+            );
+            
+            // Check if user is already a member
+            const existingMembership = await databases.listDocuments(
+                DATABASE_ID,
+                LEAGUE_MEMBERS_COLLECTION_ID,
+                [
+                    databases.queries.equal('leagueId', leagueId),
+                    databases.queries.equal('userId', activeUser.$id)
+                ]
+            );
+            
+            if (existingMembership.documents.length > 0) {
+                throw new Error('You are already a member of this league');
+            }
+            
+            // Check if league is full
+            if (league.currentTeams >= league.maxTeams) {
+                throw new Error('This league is full');
+            }
+            
+            // Check if league is still forming
+            if (league.status !== 'forming') {
+                throw new Error('This league is no longer accepting members');
+            }
+            
+            currentLeague = league;
+            await loadAvailableTeams();
+            showScreen('team-selection-screen');
+            
+        } catch (error) {
+            console.error('Error joining league:', error);
+            alert('Error joining league: ' + error.message);
+        }
+    }
+
+    // Load available teams (teams not yet selected)
+    async function loadAvailableTeams() {
+        try {
+            // Get all current members
+            const members = await databases.listDocuments(
+                DATABASE_ID,
+                LEAGUE_MEMBERS_COLLECTION_ID,
+                [databases.queries.equal('leagueId', currentLeague.$id)]
+            );
+            
+            // Get all team IDs that are already taken
+            const takenTeams = members.documents.map(member => member.teamId);
+            
+            // Filter available teams
+            availableTeams = Object.keys(TEAM_DATABASE).filter(teamId => 
+                !takenTeams.includes(teamId)
+            );
+            
+            renderAvailableTeams();
+            
+        } catch (error) {
+            console.error('Error loading available teams:', error);
+        }
+    }
+
+    // Render available teams grid
+    function renderAvailableTeams() {
+        ui.availableTeamsGrid.innerHTML = '';
+        ui.leagueNameDisplay.textContent = currentLeague.name;
+        
+        availableTeams.forEach(teamId => {
+            const team = TEAM_DATABASE[teamId];
+            const teamCard = document.createElement('div');
+            teamCard.className = 'bg-gray-700 rounded-lg p-4 border border-gray-600 hover:border-gray-500 cursor-pointer transition-colors';
+            teamCard.innerHTML = `
+                <div class="text-center">
+                    <img src="${team.logo}" alt="${team.name}" class="w-16 h-16 mx-auto mb-2 rounded-full">
+                    <h3 class="font-bold text-lg">${team.name}</h3>
+                    <p class="text-sm text-gray-400">Available</p>
+                </div>
+            `;
+            
+            teamCard.addEventListener('click', () => selectTeam(teamId));
+            ui.availableTeamsGrid.appendChild(teamCard);
+        });
+    }
+
+    // Select a team and join the league
+    async function selectTeam(teamId) {
+        try {
+            // Create membership record
+            const membership = await databases.createDocument(
+                DATABASE_ID,
+                LEAGUE_MEMBERS_COLLECTION_ID,
+                ID.unique(),
+                {
+                    leagueId: currentLeague.$id,
+                    userId: activeUser.$id,
+                    userEmail: activeUser.email,
+                    teamId: teamId,
+                    joinedAt: new Date().toISOString()
+                }
+            );
+            
+            // Update league member count
+            await databases.updateDocument(
+                DATABASE_ID,
+                LEAGUES_COLLECTION_ID,
+                currentLeague.$id,
+                {
+                    currentTeams: currentLeague.currentTeams + 1,
+                    teams: [...currentLeague.teams, teamId]
+                }
+            );
+            
+            userLeagueMembership = membership;
+            playerTeamId = teamId;
+            
+            // Start the league season
+            await startMultiplayerLeagueSeason();
+            
+        } catch (error) {
+            console.error('Error selecting team:', error);
+            alert('Error selecting team: ' + error.message);
+        }
+    }
+
+    // Start multiplayer league season
+    async function startMultiplayerLeagueSeason() {
+        try {
+            // Load all league members
+            const members = await databases.listDocuments(
+                DATABASE_ID,
+                LEAGUE_MEMBERS_COLLECTION_ID,
+                [databases.queries.equal('leagueId', currentLeague.$id)]
+            );
+            
+            leagueMembers = members.documents;
+            
+            // Generate schedule with all teams
+            const allTeamIds = leagueMembers.map(member => member.teamId);
+            const schedule = generateRoundRobinSchedule(allTeamIds);
+            
+            // Initialize league data
+            league = {
+                schedule: schedule,
+                currentWeek: 1,
+                standings: allTeamIds.map(id => ({ id: id, wins: 0, losses: 0 })),
+                playerTeamId: playerTeamId,
+                trainingCompletedThisWeek: false,
+                playerCoins: 0,
+                isMultiplayer: true,
+                leagueId: currentLeague.$id
+            };
+            
+            // Update league status to active
+            await databases.updateDocument(
+                DATABASE_ID,
+                LEAGUES_COLLECTION_ID,
+                currentLeague.$id,
+                { status: 'active' }
+            );
+            
+            renderLeagueHub();
+            showScreen('league-hub-screen');
+            renderTrainingTab();
+            renderRosterTab();
+            generateFreeAgents();
+            renderMarketTab();
+            
+        } catch (error) {
+            console.error('Error starting multiplayer league:', error);
+        }
+    }
+
+    // Check if user is in a multiplayer league
+    async function checkMultiplayerLeague() {
+        try {
+            const memberships = await databases.listDocuments(
+                DATABASE_ID,
+                LEAGUE_MEMBERS_COLLECTION_ID,
+                [databases.queries.equal('userId', activeUser.$id)]
+            );
+            
+            if (memberships.documents.length > 0) {
+                const membership = memberships.documents[0];
+                const league = await databases.getDocument(
+                    DATABASE_ID,
+                    LEAGUES_COLLECTION_ID,
+                    membership.leagueId
+                );
+                
+                currentLeague = league;
+                userLeagueMembership = membership;
+                playerTeamId = membership.teamId;
+                
+                // Load league data and continue season
+                await startMultiplayerLeagueSeason();
+                return true;
+            }
+            
+            return false;
+        } catch (error) {
+            console.error('Error checking multiplayer league:', error);
+            return false;
+        }
+    }
+
+    // Multiplayer League Listeners
+    ui.menuLeagueBtn.addEventListener('click', async () => {
+        // Check if user is already in a multiplayer league
+        const inLeague = await checkMultiplayerLeague();
+        if (inLeague) {
+            // User is already in a league, go directly to league hub
+            return;
+        }
+        
+        // Show multiplayer options
+        showScreen('multiplayer-league-screen');
+    });
+
+    ui.createLeagueForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const leagueName = ui.leagueNameInput.value;
+        const maxTeams = ui.maxTeamsSelect.value;
+        
+        try {
+            const league = await createLeague(leagueName, maxTeams);
+            currentLeague = league;
+            await loadAvailableTeams();
+            showScreen('team-selection-screen');
+        } catch (error) {
+            alert('Error creating league: ' + error.message);
+        }
+    });
+
+    ui.joinLeagueForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const leagueId = ui.leagueIdInput.value;
+        await joinLeague(leagueId);
+    });
+
+    ui.multiplayerBackBtn.addEventListener('click', () => {
+        showScreen('main-menu-screen');
+    });
+
+    ui.teamSelectionBackBtn.addEventListener('click', () => {
+        showScreen('multiplayer-league-screen');
+    });
 });

@@ -61,8 +61,9 @@
                 <span class="text-sm text-gray-300">Compete in an 8-team Major.</span>
             </button>
             <button id="menu-league-btn" class="main-menu-btn">
-                <span class="text-2xl font-bold">League Season</span>
-                <span class="text-sm text-gray-300">Coach a team through a full season.</span>
+                <span class="text-2xl">🏆</span>
+                <span class="font-bold">Multiplayer League</span>
+                <span class="text-sm text-gray-400">Create or join private leagues</span>
             </button>
         </div>
     </div>
@@ -309,6 +310,72 @@
     </div>
 </div>
     
+    <div id="multiplayer-league-screen" class="hidden max-w-4xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl lg:text-5xl font-extrabold tracking-tight">Multiplayer League</h1>
+            <p class="text-gray-400 mt-2">Create or join a private league with friends</p>
+        </header>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Create League -->
+            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <h2 class="text-2xl font-bold mb-4">Create League</h2>
+                <form id="create-league-form" class="space-y-4">
+                    <div>
+                        <label for="league-name" class="block text-sm font-medium text-gray-300">League Name</label>
+                        <input type="text" id="league-name" required class="mt-1 block w-full bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-white">
+                    </div>
+                    <div>
+                        <label for="max-teams" class="block text-sm font-medium text-gray-300">Max Teams</label>
+                        <select id="max-teams" class="mt-1 block w-full bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-white">
+                            <option value="4">4 Teams</option>
+                            <option value="6">6 Teams</option>
+                            <option value="8" selected>8 Teams</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">
+                        Create League
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Join League -->
+            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <h2 class="text-2xl font-bold mb-4">Join League</h2>
+                <form id="join-league-form" class="space-y-4">
+                    <div>
+                        <label for="league-id" class="block text-sm font-medium text-gray-300">League ID</label>
+                        <input type="text" id="league-id" required class="mt-1 block w-full bg-gray-900 border border-gray-700 rounded-md px-3 py-2 text-white" placeholder="Enter league ID">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition">
+                        Join League
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="text-center mt-8">
+            <button id="multiplayer-back-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition">
+                Back to Menu
+            </button>
+        </div>
+    </div>
+
+    <div id="team-selection-screen" class="hidden max-w-6xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl lg:text-5xl font-extrabold tracking-tight">Select Your Team</h1>
+            <p class="text-gray-400 mt-2">Choose from available teams in <span id="league-name-display"></span></p>
+        </header>
+        
+        <div id="available-teams-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
+        
+        <div class="text-center">
+            <button id="team-selection-back-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition">
+                Back
+            </button>
+        </div>
+    </div>
+
     <script src="league.js"></script>
     
     
