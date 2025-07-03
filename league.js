@@ -5,8 +5,8 @@ const { Client, Account, ID, Databases } = Appwrite;
 const client = new Client();
 
 client
-    .setEndpoint(window.configManager.get('APPWRITE_ENDPOINT'))
-    .setProject(window.configManager.get('APPWRITE_PROJECT_ID'));
+    .setEndpoint('https://cloud.appwrite.io/v1') // Your API Endpoint
+    .setProject('68639c810030f7f67bab'); // Your project ID from Appwrite console
 
 const account = new Account(client);
 const databases = new Databases(client);
