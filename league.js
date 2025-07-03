@@ -586,10 +586,10 @@ function initializeMainMenuListeners() {
     // --- Main Menu Setup (Runs ONLY after login) ---
 
     // --- Main Navigation & Setup ---
-    ui.menuLeagueBtn.addEventListener('click', () => {
-        showScreen('franchise-setup-screen');
-        renderFranchiseSelectionGrid();
-    });
+    // REMOVED: ui.menuLeagueBtn.addEventListener('click', () => {
+    //     showScreen('franchise-setup-screen');
+    //     renderFranchiseSelectionGrid();
+    // });
     ui.logoutBtn.addEventListener('click', logoutUser);
     ui.startLeagueBtn.addEventListener('click', startLeagueSeason);
 
