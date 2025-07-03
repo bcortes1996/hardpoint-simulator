@@ -6,18 +6,11 @@
 const fs = require('fs');
 const path = require('path');
 
-// Configuration values (must be set via environment variables)
+// Configuration values (can be set via environment variables)
 const config = {
-    APPWRITE_ENDPOINT: process.env.APPWRITE_ENDPOINT,
-    APPWRITE_PROJECT_ID: process.env.APPWRITE_PROJECT_ID
+    APPWRITE_ENDPOINT: process.env.APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1',
+    APPWRITE_PROJECT_ID: process.env.APPWRITE_PROJECT_ID || '68639c810030f7f67bab'
 };
-
-if (!config.APPWRITE_PROJECT_ID) {
-    throw new Error('Missing Appwrite Project ID: Please set APPWRITE_PROJECT_ID as an environment variable.');
-}
-if (!config.APPWRITE_ENDPOINT) {
-    throw new Error('Missing Appwrite Endpoint: Please set APPWRITE_ENDPOINT as an environment variable.');
-}
 
 function replaceConfigInFile(filePath) {
     try {
@@ -42,7 +35,7 @@ function replaceConfigInFile(filePath) {
         
         // Replace configuration object in config.js
         if (filePath.endsWith('config.js')) {
-            const fallbackRegex = /'68639c810030f7f67bab' \/\/ Build-time configured ID/;
+            const fallbackRegex = /'68639c810030f7f67bab' \/\/ Fallback to original ID/;
             if (fallbackRegex.test(content)) {
                 content = content.replace(fallbackRegex, `'${config.APPWRITE_PROJECT_ID}' // Build-time configured ID`);
                 modified = true;

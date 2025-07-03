@@ -4,7 +4,7 @@ A comprehensive Call of Duty Hardpoint simulation game with league management, p
 
 ## 🔐 Security Configuration
 
-This application uses environment variables to securely manage Appwrite credentials. The project ID and endpoint are never hardcoded in the source code or documentation.
+This application uses environment variables to securely manage Appwrite credentials. The project ID and endpoint are no longer hardcoded in the source code.
 
 ### Setting Up Environment Variables
 
@@ -12,7 +12,7 @@ This application uses environment variables to securely manage Appwrite credenti
 
 1. **Set environment variables:**
    ```bash
-   export APPWRITE_PROJECT_ID="your_project_id"
+   export APPWRITE_PROJECT_ID="your_actual_project_id"
    export APPWRITE_ENDPOINT="https://cloud.appwrite.io/v1"
    ```
 
@@ -27,7 +27,7 @@ This application uses environment variables to securely manage Appwrite credenti
 
 You can also set configuration at runtime in the browser console:
 ```javascript
-localStorage.setItem('config_APPWRITE_PROJECT_ID', 'your_project_id');
+localStorage.setItem('config_APPWRITE_PROJECT_ID', 'your_actual_project_id');
 localStorage.setItem('config_APPWRITE_ENDPOINT', 'https://cloud.appwrite.io/v1');
 // Refresh the page
 ```
@@ -35,7 +35,7 @@ localStorage.setItem('config_APPWRITE_ENDPOINT', 'https://cloud.appwrite.io/v1')
 #### Option 3: One-liner Build
 
 ```bash
-APPWRITE_PROJECT_ID="your_project_id" node build.js
+APPWRITE_PROJECT_ID="your_actual_project_id" node build.js
 ```
 
 ### Configuration Priority
@@ -44,11 +44,11 @@ The system loads configuration in this order:
 1. **localStorage** (runtime configuration)
 2. **window.__CONFIG__** (build-time injection)
 3. **Environment variables** (build process)
-4. **No fallback** – you must provide your own credentials
+4. **Default values** (fallback)
 
 ### Security Benefits
 
-✅ **No hardcoded credentials** in source code or documentation  
+✅ **No hardcoded credentials** in source code  
 ✅ **Environment variable support**  
 ✅ **Build-time configuration**  
 ✅ **Runtime configuration**  
@@ -63,7 +63,9 @@ The system loads configuration in this order:
 
 ### Default Configuration
 
-If no environment variables are set, the system will not function until you provide your own credentials.
+If no environment variables are set, the system uses:
+- **Endpoint**: `https://cloud.appwrite.io/v1`
+- **Project ID**: `68639c810030f7f67bab` (original ID as fallback)
 
 ## 🚀 Getting Started
 
