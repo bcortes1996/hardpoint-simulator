@@ -49,8 +49,7 @@ function initializeAppwriteClient() {
         
         console.log('✅ Appwrite client initialized successfully');
         
-        // Initialize the app now that everything is ready
-        init();
+        // Don't call init() here - it will be called at the end of DOMContentLoaded
         
     } catch (error) {
         console.error('❌ Failed to initialize Appwrite client:', error);
@@ -71,8 +70,7 @@ function initializeAppwriteClient() {
         LEAGUES_COLLECTION_ID = 'fallback';
         LEAGUE_MEMBERS_COLLECTION_ID = 'fallback';
         
-        // Initialize the app anyway for offline functionality
-        init();
+        // Don't call init() here either - it will be called at the end
     }
 }
 
@@ -1749,4 +1747,7 @@ function initializeMainMenuListeners() {
             return false;
         }
     }
+    
+    // Initialize the application after all variables are defined
+    init();
 });
