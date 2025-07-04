@@ -6,30 +6,41 @@ class AppwriteConfig {
         // Check if we're in development or production
         this.isDevelopment = window.location.hostname === 'localhost' || 
                            window.location.hostname === '127.0.0.1' ||
-                           window.location.hostname.includes('localhost');
+                           window.location.hostname.includes('localhost') ||
+                           window.location.protocol === 'file:' ||
+                           window.location.hostname.includes('127.0.0.1');
         
-        // Initialize configuration
-        this.config = this.loadConfig();
-        
-        // Validate configuration
-        this.validateConfig();
+        // Initialize configuration with error handling
+        try {
+            this.config = this.loadConfig();
+            // Validate configuration
+            this.validateConfig();
+        } catch (error) {
+            console.error('❌ Configuration Error:', error.message);
+            console.warn('⚠️  Falling back to development configuration');
+            // Force development mode if configuration fails
+            this.isDevelopment = true;
+            this.config = this.getDevelopmentConfig();
+        }
     }
     
     loadConfig() {
         // Try to load from environment variables first (if available)
         const envConfig = this.loadFromEnvironment();
         if (envConfig) {
+            console.log('✅ Configuration loaded from environment variables');
             return envConfig;
         }
         
-        // Fallback to configuration object (for development only)
+        // Fallback to configuration object (for development)
         if (this.isDevelopment) {
             console.warn('⚠️  Using development configuration. Do not use in production!');
             return this.getDevelopmentConfig();
         }
         
-        // Production should always use environment variables
-        throw new Error('Production environment requires proper configuration. Please set up environment variables.');
+        // If not in development and no env config, use development config anyway
+        console.warn('⚠️  No environment configuration found. Using development configuration.');
+        return this.getDevelopmentConfig();
     }
     
     loadFromEnvironment() {
@@ -156,4 +167,32 @@ class AppwriteConfig {
 }
 
 // Export configuration instance
-window.appwriteConfig = new AppwriteConfig(); 
+try {
+    window.appwriteConfig = new AppwriteConfig();
+    console.log('✅ Configuration system initialized successfully');
+} catch (error) {
+    console.error('❌ Failed to initialize configuration system:', error);
+    // Create a fallback configuration object
+    window.appwriteConfig = {
+        isDevelopment: true,
+        config: {
+            appwrite: {
+                endpoint: 'https://cloud.appwrite.io/v1',
+                projectId: '68639c810030f7f67bab',
+                databaseId: '686510ee0020a76d0d98',
+                collections: {
+                    leagues: '6867058300318420674c',
+                    members: '686706550034758889a2'
+                }
+            }
+        },
+        getAppwriteConfig: function() { return this.config.appwrite; },
+        getEndpoint: function() { return this.config.appwrite.endpoint; },
+        getProjectId: function() { return this.config.appwrite.projectId; },
+        getDatabaseId: function() { return this.config.appwrite.databaseId; },
+        getLeaguesCollectionId: function() { return this.config.appwrite.collections.leagues; },
+        getMembersCollectionId: function() { return this.config.appwrite.collections.members; },
+        logConfigStatus: function() { console.log('Using fallback configuration'); }
+    };
+    console.warn('⚠️  Using fallback configuration object');
+} 

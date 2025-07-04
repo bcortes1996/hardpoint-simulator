@@ -76,6 +76,43 @@ function initializeAppwriteClient() {
     }
 }
 
+const { Client, Account, ID, Databases, Query } = Appwrite;
+
+// Initialize Appwrite client with secure configuration
+const client = new Client();
+
+// Use the secure configuration system
+try {
+    if (!window.appwriteConfig) {
+        throw new Error('Configuration system not loaded. Please ensure config.js is loaded before this script.');
+    }
+    
+    const config = window.appwriteConfig.getAppwriteConfig();
+    
+    client
+        .setEndpoint(config.endpoint)
+        .setProject(config.projectId);
+    
+    console.log('✅ Appwrite client initialized successfully');
+} catch (error) {
+    console.error('❌ Failed to initialize Appwrite client:', error);
+    // Show user-friendly error message
+    alert('Configuration error: Unable to connect to the game servers. Please refresh the page or contact support.');
+}
+
+const account = new Account(client);
+const databases = new Databases(client);
+
+// Use secure configuration for database IDs
+const DATABASE_ID = window.appwriteConfig.getDatabaseId();
+const LEAGUES_COLLECTION_ID = window.appwriteConfig.getLeaguesCollectionId();
+const LEAGUE_MEMBERS_COLLECTION_ID = window.appwriteConfig.getMembersCollectionId();
+
+// Log configuration status for debugging (without exposing sensitive data)
+if (window.appwriteConfig.isDevelopment) {
+    window.appwriteConfig.logConfigStatus();
+}
+    
     //=========== GLOBAL STATE & DATABASE ===========
     const TEAM_DATABASE = {
         'faze': { name: "Atlanta FaZe", logo: "https://placehold.co/50x50/E23435/FFFFFF?text=FaZe", color: "#e23435", players: [ { name: "Simp", picture: "images/simp_picture.webp", stats: { Overall: 93, Pace: 80, Efficiency: 88, Objective: 86 } }, { name: "Cellium", picture: "images/cellium_picture.webp",stats: { Overall: 94, Pace: 71, Efficiency: 94, Objective: 81 } }, { name: "Drazah", picture: "images/drazah_picture.webp", stats: { Overall: 91, Pace: 81, Efficiency: 87, Objective: 80 } }, { name: "aBeZy", picture: "images/abezy_picture.webp",stats: { Overall: 90, Pace: 80, Efficiency: 80, Objective: 79 } }, ], substitutes: [] },
