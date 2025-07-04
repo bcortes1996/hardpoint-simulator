@@ -1,6 +1,152 @@
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if configuration is available
+    if (!window.appwriteConfig) {
+        console.error('❌ Configuration system not loaded. Please ensure config.js is loaded before this script.');
+        showConfigurationError('Configuration system not loaded. Please ensure config.js is loaded before this script.');
+        return;
+    }
+
+    // Check if configuration is properly initialized
+    if (!window.appwriteConfig.isConfigured()) {
+        console.warn('⚠️  Configuration not properly initialized. Running in demo mode.');
+        showDemoModeNotice();
+        initializeDemoMode();
+        return;
+    }
+
+    // Initialize Appwrite client with proper configuration
+    try {
+        const config = window.appwriteConfig.getAppwriteConfig();
+        client = new Appwrite.Client()
+            .setEndpoint(config.endpoint)
+            .setProject(config.projectId);
+        
+        databases = new Appwrite.Databases(client);
+        account = new Appwrite.Account(client);
+        
+        console.log('✅ Appwrite client initialized successfully');
+        
+        // Initialize the application
+        initializeApp();
+        
+    } catch (error) {
+        console.error('❌ Failed to initialize Appwrite client:', error);
+        showConfigurationError('Failed to initialize Appwrite client: ' + error.message);
+    }
+});
+
+function showDemoModeNotice() {
+    // Show a notice that the app is running in demo mode
+    const notice = document.createElement('div');
+    notice.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: #1f2937;
+        color: #f9fafb;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        border: 2px solid #374151;
+        z-index: 1000;
+        max-width: 300px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    `;
+    
+    notice.innerHTML = `
+        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 1.25rem; margin-right: 0.5rem;">🎮</span>
+            <strong>Demo Mode</strong>
+        </div>
+        <p style="font-size: 0.875rem; margin-bottom: 0.5rem;">
+            This is a demonstration version. Multiplayer features are disabled.
+        </p>
+        <button onclick="this.parentElement.remove()" style="background-color: #374151; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem;">
+            Got it
+        </button>
+    `;
+    
+    document.body.appendChild(notice);
+    
+    // Auto-remove after 10 seconds
+    setTimeout(() => {
+        if (notice.parentElement) {
+            notice.remove();
+        }
+    }, 10000);
+}
+
+function initializeDemoMode() {
+    // Initialize the app in demo mode (single player only)
+    console.log('🎮 Initializing demo mode...');
+    
+    // Hide multiplayer features
+    const multiplayerElements = document.querySelectorAll('[data-feature="multiplayer"]');
+    multiplayerElements.forEach(element => {
+        element.style.display = 'none';
+    });
+    
+    // Add demo indicators
+    const leagueButton = document.querySelector('button[onclick="showMultiplayerLeague()"]');
+    if (leagueButton) {
+        leagueButton.innerHTML = '🎮 Multiplayer League (Demo Mode)';
+        leagueButton.disabled = true;
+        leagueButton.style.opacity = '0.5';
+        leagueButton.title = 'Multiplayer features require proper configuration';
+    }
+    
+    // Initialize basic app functionality
+    initializeApp();
+}
+
+function showConfigurationError(message) {
+    // Show configuration error to user
+    const errorDiv = document.createElement('div');
+    errorDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #7f1d1d;
+        color: #fecaca;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        border: 2px solid #b91c1c;
+        z-index: 9999;
+        max-width: 500px;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+    `;
+    
+    errorDiv.innerHTML = `
+        <h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem;">⚠️ Configuration Error</h2>
+        <p style="margin-bottom: 1rem;">${message}</p>
+        <p style="font-size: 0.875rem; color: #fca5a5; margin-bottom: 1rem;">
+            The application cannot start properly. Please check the console for more details.
+        </p>
+        <button onclick="location.reload()" style="background-color: #b91c1c; color: white; font-weight: bold; padding: 0.5rem 1rem; border: none; border-radius: 0.25rem; cursor: pointer;">
+            Reload Page
+        </button>
+    `;
+    
+    document.body.appendChild(errorDiv);
+}
+
 // TOP of league.js
 const { Client, Account, ID, Databases, Query } = Appwrite;
+
+// Initialize Appwrite client - this will be configured properly in the DOMContentLoaded event
+let client, account, databases;
+let DATABASE_ID, LEAGUES_COLLECTION_ID, LEAGUE_MEMBERS_COLLECTION_ID;
+
+// Initialize the app when DOM is ready
+function initializeApp() {
+    // Initialize main menu listeners and basic functionality
+    initializeMainMenuListeners();
+    
+    // Check if user is already logged in
+    checkUserStatus();
+}
 
 // Initialize Appwrite client with secure configuration
 const client = new Client();
