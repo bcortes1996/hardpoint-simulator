@@ -1,0 +1,42 @@
+{
+  "name": "cod-hardpoint-simulator",
+  "version": "2.0.0",
+  "description": "Call of Duty: Hardpoint Simulator - A web-based esports simulation game",
+  "main": "index.html",
+  "scripts": {
+    "build": "node build-config.js",
+    "dev": "echo '⚠️  Development mode - using fallback configuration' && python -m http.server 8080 || python3 -m http.server 8080",
+    "serve": "python -m http.server 8080 || python3 -m http.server 8080",
+    "build:check": "node -e \"console.log('Checking environment variables...'); const vars = ['APPWRITE_ENDPOINT', 'APPWRITE_PROJECT_ID', 'APPWRITE_DATABASE_ID', 'APPWRITE_LEAGUES_COLLECTION_ID', 'APPWRITE_MEMBERS_COLLECTION_ID']; const missing = vars.filter(v => !process.env[v]); if (missing.length) { console.error('Missing:', missing.join(', ')); process.exit(1); } console.log('✅ All required environment variables are set');\"",
+    "security:check": "echo '🔒 Security Check:' && echo '- Checking for exposed credentials...' && ! grep -r '68639c810030f7f67bab\\|686510ee0020a76d0d98' --exclude-dir=node_modules --exclude-dir=.git --exclude='*.md' --exclude='package.json' . && echo '✅ No exposed credentials found' || echo '❌ Exposed credentials detected!'",
+    "clean": "rm -rf dist/"
+  },
+  "keywords": [
+    "call-of-duty",
+    "esports",
+    "simulation",
+    "gaming",
+    "hardpoint"
+  ],
+  "author": "COD Simulator Team",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/cod-hardpoint-simulator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/cod-hardpoint-simulator/issues"
+  },
+  "homepage": "https://github.com/your-username/cod-hardpoint-simulator#readme",
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+} 

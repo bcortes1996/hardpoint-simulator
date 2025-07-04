@@ -1,15 +1,41 @@
 document.addEventListener('DOMContentLoaded', () => {
 // TOP of league.js
-const { Client, Account, ID, Databases } = Appwrite;
+const { Client, Account, ID, Databases, Query } = Appwrite;
 
+// Initialize Appwrite client with secure configuration
 const client = new Client();
 
-client
-    .setEndpoint('https://cloud.appwrite.io/v1') // Your API Endpoint
-    .setProject('68639c810030f7f67bab'); // Your project ID from Appwrite console
+// Use the secure configuration system
+try {
+    if (!window.appwriteConfig) {
+        throw new Error('Configuration system not loaded. Please ensure config.js is loaded before this script.');
+    }
+    
+    const config = window.appwriteConfig.getAppwriteConfig();
+    
+    client
+        .setEndpoint(config.endpoint)
+        .setProject(config.projectId);
+    
+    console.log('✅ Appwrite client initialized successfully');
+} catch (error) {
+    console.error('❌ Failed to initialize Appwrite client:', error);
+    // Show user-friendly error message
+    alert('Configuration error: Unable to connect to the game servers. Please refresh the page or contact support.');
+}
 
 const account = new Account(client);
 const databases = new Databases(client);
+
+// Use secure configuration for database IDs
+const DATABASE_ID = window.appwriteConfig.getDatabaseId();
+const LEAGUES_COLLECTION_ID = window.appwriteConfig.getLeaguesCollectionId();
+const LEAGUE_MEMBERS_COLLECTION_ID = window.appwriteConfig.getMembersCollectionId();
+
+// Log configuration status for debugging (without exposing sensitive data)
+if (window.appwriteConfig.isDevelopment) {
+    window.appwriteConfig.logConfigStatus();
+}
     
     //=========== GLOBAL STATE & DATABASE ===========
     const TEAM_DATABASE = {
@@ -30,9 +56,6 @@ const databases = new Databases(client);
     let currentMode = 'league';
     let league = {};
     //=========== MULTIPLAYER LEAGUE VARIABLES ===========
-const DATABASE_ID = '686510ee0020a76d0d98'; // Your actual database ID
-const LEAGUES_COLLECTION_ID = '6867058300318420674c';
-const LEAGUE_MEMBERS_COLLECTION_ID = '686706550034758889a2';
 
 let currentLeague = null;
 let userLeagueMembership = null;
